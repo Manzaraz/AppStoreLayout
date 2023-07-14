@@ -9,6 +9,13 @@ class ViewController: UIViewController {
         case standard(String)
         case categories
     }
+    
+    // MARK: Suplementary Views
+    enum SupplementaryViewKind {
+        static let header = "header"
+        static let topLine = "topLine"
+        static let bottomLine = "bottomLine"
+    }
 
     @IBOutlet var collectionView: UICollectionView!
     
@@ -24,6 +31,10 @@ class ViewController: UIViewController {
         collectionView.register(StandardAppCollectionViewCell.self, forCellWithReuseIdentifier: StandardAppCollectionViewCell.reuseIdentifier)
         
         collectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.reuseIdentifier)
+        
+        collectionView.register(SectionHeaderView.self, forSupplementaryViewOfKind: SupplementaryViewKind.header, withReuseIdentifier: SectionHeaderView.reuseIdentifier)
+        collectionView.register(LineView.self, forSupplementaryViewOfKind: SupplementaryViewKind.topLine, withReuseIdentifier: LineView.reuseIdentifier)
+        collectionView.register(LineView.self, forSupplementaryViewOfKind: SupplementaryViewKind.bottomLine, withReuseIdentifier: LineView.reuseIdentifier)
         
         // MARK: Collection View Setup
         collectionView.collectionViewLayout = createLayout()
