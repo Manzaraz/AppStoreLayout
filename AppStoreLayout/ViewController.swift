@@ -23,6 +23,8 @@ class ViewController: UIViewController {
         
         collectionView.register(StandardAppCollectionViewCell.self, forCellWithReuseIdentifier: StandardAppCollectionViewCell.reuseIdentifier)
         
+        collectionView.register(CategoryCollectionViewCell.self, forCellWithReuseIdentifier: CategoryCollectionViewCell.reuseIdentifier)
+        
         // MARK: Collection View Setup
         collectionView.collectionViewLayout = createLayout()
                 
@@ -64,8 +66,28 @@ class ViewController: UIViewController {
                 section.orthogonalScrollingBehavior = .groupPagingCentered
                 
                 return section
-            default:
-                return nil
+                
+            case .categories:
+                //  MARK: Categories Section Layout
+                let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+                let item = NSCollectionLayoutItem(layoutSize: itemSize)
+                
+                let availableLayoutWitdh = layoutEnvironment.container.contentSize.width
+                let groupWidth = availableLayoutWitdh * 0.92
+                let remainingwidth = availableLayoutWitdh - groupWidth
+                let halfOfRemainingWidth = remainingwidth / 2.0
+                let nonCategorySectionItemInset = CGFloat(4)
+                let itemLeadingAndTrailingInset = halfOfRemainingWidth + nonCategorySectionItemInset
+                
+                item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: itemLeadingAndTrailingInset, bottom: 0, trailing: itemLeadingAndTrailingInset)
+                
+                let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .estimated(44))
+                let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
+                
+                let section = NSCollectionLayoutSection(group: group)
+                
+                return section
+                
             }
         }
         return layout
@@ -82,6 +104,7 @@ class ViewController: UIViewController {
                 cell.configureCell(item.app!)
                 
                 return cell
+                
             case .standard:
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: StandardAppCollectionViewCell.reuseIdentifier, for: indexPath) as! StandardAppCollectionViewCell
                 
@@ -90,8 +113,16 @@ class ViewController: UIViewController {
                 cell.configureCell(item.app!, hideBottomLine: isThirdItem)
                 
                 return cell
-            default:
-                fatalError("Not yet implemented.")
+                
+            case .categories:
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCollectionViewCell.reuseIdentifier, for: indexPath) as! CategoryCollectionViewCell
+                
+                let isLastItem = collectionView.numberOfItems(inSection: indexPath.section) == indexPath.row + 1
+                
+                cell.configureCell(item.category!, hideBottomLine: isLastItem)
+                
+                return cell
+            
             }
         })
         
@@ -102,10 +133,13 @@ class ViewController: UIViewController {
         
         let popularSection = Section.standard("Popular this week")
         let essentialSection = Section.standard("Essential picks")
+        let categoriesSection = Section.categories
         
-        snapshot.appendSections([popularSection, essentialSection])
+        
+        snapshot.appendSections([popularSection, essentialSection, categoriesSection])
         snapshot.appendItems(Item.popularApps, toSection: popularSection)
         snapshot.appendItems(Item.essentialApps, toSection: essentialSection)
+        snapshot.appendItems(Item.categories, toSection: categoriesSection)
         
         sections = snapshot.sectionIdentifiers
         dataSource.apply(snapshot)
