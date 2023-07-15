@@ -46,6 +46,23 @@ class ViewController: UIViewController {
         let layout = UICollectionViewCompositionalLayout {
             (sectionIndex, layoutEnvironment) -> NSCollectionLayoutSection? in
             let section = self.sections[sectionIndex]
+            
+            // MARK: Standard and Categories Section Headers
+            let headerItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .estimated(44))
+            let headerItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: headerItemSize, elementKind: SupplementaryViewKind.header, alignment: .top)
+            
+            let lineItemHeight = 1 / layoutEnvironment.traitCollection.displayScale
+            let lineItemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.92), heightDimension: .absolute(lineItemHeight))
+            
+            let topLineItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: lineItemSize, elementKind: SupplementaryViewKind.topLine, alignment: .top)
+            let bottomLineItem = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: lineItemSize, elementKind: SupplementaryViewKind.bottomLine, alignment: .bottom)
+            let supplementaryItemContentIsets = NSDirectionalEdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 4)
+            headerItem.contentInsets = supplementaryItemContentIsets
+            topLineItem.contentInsets = supplementaryItemContentIsets
+            bottomLineItem.contentInsets = supplementaryItemContentIsets
+            
+            
+            
             switch section {
             case .promoted:
                 // MARK: Promoted Section Layout
@@ -61,6 +78,8 @@ class ViewController: UIViewController {
                 
                 let section = NSCollectionLayoutSection(group: group)
                 section.orthogonalScrollingBehavior = .groupPagingCentered
+                section.boundarySupplementaryItems = [topLineItem, bottomLineItem]
+                section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
                 
                 return section
                 
@@ -75,6 +94,8 @@ class ViewController: UIViewController {
                 
                 let section = NSCollectionLayoutSection(group: group)
                 section.orthogonalScrollingBehavior = .groupPagingCentered
+                section.boundarySupplementaryItems = [headerItem, bottomLineItem]
+                section.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 0, bottom: 20, trailing: 0)
                 
                 return section
                 
@@ -96,6 +117,7 @@ class ViewController: UIViewController {
                 let group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])
                 
                 let section = NSCollectionLayoutSection(group: group)
+                section.boundarySupplementaryItems = [headerItem]
                 
                 return section
                 
@@ -136,6 +158,46 @@ class ViewController: UIViewController {
             
             }
         })
+        
+        // MARK: Suplementary View Provider
+        dataSource.supplementaryViewProvider = { collectionView, kind, indexPath -> UICollectionReusableView? in
+            switch kind {
+            case SupplementaryViewKind.header:
+                
+                let section = self.sections[indexPath.section]
+                let sectionName: String
+                
+                switch section {
+                case .promoted:
+                    return nil
+                case .standard(let name):
+                    sectionName = name
+                case .categories:
+                    sectionName = "Top Categories"
+                }
+                
+                
+                let headerView = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: SupplementaryViewKind.header,
+                    withReuseIdentifier: SectionHeaderView.reuseIdentifier,
+                    for: indexPath
+                ) as! SectionHeaderView
+                headerView.setTitle(sectionName)
+                
+                return headerView
+            case SupplementaryViewKind.topLine, SupplementaryViewKind.bottomLine:
+                let lineView = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: kind,
+                    withReuseIdentifier: LineView.reuseIdentifier,
+                    for: indexPath
+                ) as! LineView
+                
+                return lineView
+                
+            default:
+                return nil
+            }
+        }
         
         // MARK: Snapshot Definition
         var snapshot = NSDiffableDataSourceSnapshot<Section, Item>()
